@@ -1,14 +1,9 @@
 import os
-import environ
-
-env = environ.Env()
-
-# read the .env file
-environ.Env.read_env()
+from decouple import config
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SECRET_KEY = env('SECRET_KEY')
-DEBUG = env('DEBUG')
+SECRET_KEY = config('SECRET_KEY')
+DEBUG = config('DEBUG')
 ALLOWED_HOSTS = ['*']
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
@@ -20,7 +15,20 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'crispy_forms',
+    'crispy_bootstrap4',
+    'cart',
+    'core',
+    'staff'
 ]
+
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
+NOTIFY_EMAIL = config('NOTIFY_EMAIL')
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -30,6 +38,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'ecom.urls'
@@ -54,8 +63,15 @@ WSGI_APPLICATION = 'ecom.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME':  config('DATABASE_NAME'),
+        'USER':  config('DATABASE_USER'),
+        'PASSWORD':  config('DATABASE_PASSWORD'),
+        'HOST':  config('DATABASE_HOST'),
+        'PORT': config('DATABASE_PORT'),
+        'OPTIONS' :{
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        }
     }
 }
 
@@ -74,6 +90,18 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+)
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+LOGIN_REDIRECT_URL = '/'
+SITE_ID = 1
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
+
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
@@ -85,6 +113,13 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 STATIC_ROOT = os.path.join(BASE_DIR, "static_root")
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+PAYPAL_CLIENT_ID = config('PAYPAL_SANDBOX_CLIENT_ID')
+PAYPAL_SECRET_KEY = config('PAYPAL_SANDBOX_SECRET_KEY')
+
+STRIPE_PUBLIC_KEY = config("STRIPE_PUBLIC_KEY")
+STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY")
+STRIPE_WEBHOOK_SECRET = config("STRIPE_WEBHOOK_SECRET")
 
 if DEBUG is False:
     SESSION_COOKIE_SECURE = True
@@ -100,12 +135,16 @@ if DEBUG is False:
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql_psycopg2',
-            'NAME': '',
-            'USER': '',
-            'PASSWORD': '',
-            'HOST': '',
-            'PORT': ''
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME':  config('DATABASE_NAME'),
+        'USER':  config('DATABASE_USER'),
+        'PASSWORD':  config('DATABASE_PASSWORD'),
+        'HOST':  config('DATABASE_HOST'),
+        'PORT': config('DATABASE_PORT'),
+        'OPTIONS' :{
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
         }
     }
+
+    PAYPAL_CLIENT_ID = config('PAYPAL_LIVE_CLIENT_ID')
+    PAYPAL_SECRET_KEY = config('PAYPAL_LIVE_SECRET_KEY')
